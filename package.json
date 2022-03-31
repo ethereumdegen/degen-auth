@@ -1,0 +1,11 @@
+{
+  "name": "degen-auth",
+  "version": "0.10.0",
+  "description": "Authentication plugin for offchain signature validation of web3 accounts",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "apexmfer",
+  "license": "MIT"
+}
