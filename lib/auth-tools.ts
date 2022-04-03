@@ -36,7 +36,7 @@ export default class AuthTools {
       return accessChallenge
     }
     
-    static async upsertNewChallengeNumberForAccount(publicAddress:string, serviceName: string, challengeGenerator?: Function )   {
+    static async upsertNewChallengeForAccount(publicAddress:string, serviceName: string, challengeGenerator?: Function )   {
 
       const unixTime = Date.now().toString()
       
@@ -101,8 +101,6 @@ export default class AuthTools {
   
       publicAddress = web3utils.toChecksumAddress(publicAddress)
   
-      
-      
        let upsert = await AuthenticationTokenModel.findOneAndUpdate(
           { publicAddress: publicAddress },
           { token: newToken, createdAt: unixTime },

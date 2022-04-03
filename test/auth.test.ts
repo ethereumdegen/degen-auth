@@ -48,7 +48,7 @@ describe('Authentication', () => {
 
     let publicAddress = user.address
      
-    let savedRecords = await AuthTools.upsertNewChallengeNumberForAccount( publicAddress,  'testApp' )
+    let savedRecords = await AuthTools.upsertNewChallengeForAccount( publicAddress,  'testApp' )
     
     let activeChallenge = await AuthTools.findActiveChallengeForAccount(publicAddress)
 
