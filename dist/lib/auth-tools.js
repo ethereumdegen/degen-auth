@@ -33,7 +33,7 @@ class AuthTools {
         const accessChallenge = `Signing in to ${serviceName} as ${publicAddress.toString()} at ${unixTime.toString()}`;
         return accessChallenge;
     }
-    static upsertNewChallengeNumberForAccount(publicAddress, serviceName, challengeGenerator) {
+    static upsertNewChallengeForAccount(publicAddress, serviceName, challengeGenerator) {
         return __awaiter(this, void 0, void 0, function* () {
             const unixTime = Date.now().toString();
             publicAddress = web3_utils_1.default.toChecksumAddress(publicAddress);
@@ -44,19 +44,8 @@ class AuthTools {
             else {
                 challenge = AuthTools.generateServiceNameChallengePhrase(unixTime, serviceName, publicAddress);
             }
-            const existingChallengeToken = yield AuthTools.findActiveChallengeForAccount(publicAddress);
-            let upsert;
-            if (existingChallengeToken) {
-                upsert = yield mongo_interface_1.ChallengeTokenModel.updateOne({ publicAddress: publicAddress }, { challenge: challenge, createdAt: unixTime });
-            }
-            else {
-                upsert = yield mongo_interface_1.ChallengeTokenModel.insertMany({
-                    publicAddress: publicAddress,
-                    challenge: challenge,
-                    createdAt: unixTime,
-                });
-            }
-            return upsert;
+            let upsert = yield mongo_interface_1.ChallengeTokenModel.findOneAndUpdate({ publicAddress: publicAddress }, { challenge: challenge, createdAt: unixTime }, { new: true, upsert: true });
+            return challenge;
         });
     }
     static findActiveChallengeForAccount(publicAddress) {
@@ -89,18 +78,7 @@ class AuthTools {
             const unixTime = Date.now().toString();
             const newToken = AuthTools.generateNewAuthenticationToken();
             publicAddress = web3_utils_1.default.toChecksumAddress(publicAddress);
-            const existingAuthToken = yield AuthTools.findActiveAuthenticationTokenForAccount(publicAddress);
-            let upsert;
-            if (existingAuthToken) {
-                upsert = yield mongo_interface_1.AuthenticationTokenModel.updateOne({ publicAddress: publicAddress }, { token: newToken, createdAt: unixTime });
-            }
-            else {
-                upsert = yield mongo_interface_1.AuthenticationTokenModel.insertMany({
-                    publicAddress: publicAddress,
-                    token: newToken,
-                    createdAt: unixTime,
-                });
-            }
+            let upsert = yield mongo_interface_1.AuthenticationTokenModel.findOneAndUpdate({ publicAddress: publicAddress }, { token: newToken, createdAt: unixTime }, { new: true, upsert: true });
             return newToken;
         });
     }

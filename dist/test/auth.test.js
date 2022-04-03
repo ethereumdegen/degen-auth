@@ -36,7 +36,7 @@ describe('Authentication', () => {
     }));
     it('can save a challenge', () => __awaiter(void 0, void 0, void 0, function* () {
         let publicAddress = user.address;
-        let savedRecords = yield auth_tools_1.default.upsertNewChallengeNumberForAccount(publicAddress, 'testApp');
+        let savedRecords = yield auth_tools_1.default.upsertNewChallengeForAccount(publicAddress, 'testApp');
         let activeChallenge = yield auth_tools_1.default.findActiveChallengeForAccount(publicAddress);
         (0, chai_1.expect)(activeChallenge).to.exist;
     }));
@@ -66,40 +66,5 @@ describe('Authentication', () => {
         (0, chai_1.expect)(session.success).to.eql(true);
         (0, chai_1.expect)(session.authToken).to.exist;
     }));
-    /*
-  
-      it('can get challenge token and auth token', async () => {
-      let inputData = {publicAddress: user.address}
-      let challengeResult = await axios.post( uri_root + '/api/get-challenge-token' , inputData )
-    
-      challengeResult.should.exist
-      console.log('challenge token is ', challengeResult.data )
-  
-  
-      let badSignature = '0x0000'
-  
-      let badAuthInputData = {publicAddress: user.address, signature: badSignature}
-      let badAuthResult = await axios.post( uri_root + '/api/get-auth-token' , badAuthInputData )
-        
-      expect(badAuthResult.data.success).to.eql(false)
-  
-      let goodSignature = await user.signMessage( challengeResult.data.challengeToken )
-  
-      console.log('signature is', goodSignature)
-      goodSignature.should.exist
-  
-      let authInputData = {publicAddress: user.address, signature: goodSignature}
-      let authResult = await axios.post( uri_root + '/api/get-auth-token' , authInputData )
-      authResult.should.exist
-  
-      console.log('auth token is ', authResult.data )
-  
-      let authTokenData = authResult.data.authToken
-      authToken = authTokenData.token
-  
-      expect(authResult.data.success).to.eql(true)
-    })
-  
-    */
 });
 //# sourceMappingURL=auth.test.js.map

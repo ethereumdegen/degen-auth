@@ -1,6 +1,6 @@
 {
   "name": "degen-auth",
-  "version": "0.10.0",
+  "version": "0.11.0",
   "description": "Authentication plugin for offchain signature validation of web3 accounts",
   "main": "index.js",
   "scripts": {
@@ -19,6 +19,7 @@
     "web3-utils": "^1.7.1"
   },
   "devDependencies": {
+    "@types/chai": "^4.3.0",
     "@types/mocha": "^9.1.0",
     "chai": "^4.3.4",
     "ethers": "^5.6.2",
