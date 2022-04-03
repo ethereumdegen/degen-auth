@@ -17,12 +17,17 @@ export default class AuthTools {
       return envName
     }
 
-    static async initializeDatabase(mongoInterface:MongoInterface, config: any ){
+    static async initializeDatabase(config: any ){
  
+      let mongoInterface = new MongoInterface()
+
+      if(!config) config = {}
 
       let dbName = config.dbName ? config.dbName :  "degenauth".concat('_').concat(AuthTools.getEnvironmentName())
  
       await mongoInterface.init(dbName, config)
+
+      return mongoInterface
 
     }
 
