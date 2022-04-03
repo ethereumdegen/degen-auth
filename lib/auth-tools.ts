@@ -74,6 +74,8 @@ export default class AuthTools {
 
     static async findActiveChallengeForAccount(publicAddress: string) {
       const ONE_DAY = 86400 * 1000
+
+      publicAddress = web3utils.toChecksumAddress(publicAddress)
   
       const existingChallengeToken = await ChallengeTokenModel.findOne({
         publicAddress: publicAddress,
@@ -123,7 +125,7 @@ export default class AuthTools {
         })
       }
   
-      return upsert
+      return newToken
     }
 
 
@@ -150,13 +152,46 @@ export default class AuthTools {
   
       return existingAuthToken
     }
-  
+    
+
+    /*
+    This method takes a public address and the users signature of the challenge which proves that they know the private key for the account without revealing the private key.
+    If the signature is valid, then an authentication token is stored in the database and returned by this method so that it can be given to the user and stored on their client side as their session token.
+    Then, anyone with that session token can reasonably be trusted to be fully in control of the web3 account for that public address since they were able to personal sign. 
+    */
+    static async generateAuthenticatedSession(publicAddress:string, signature:string, challenge?:string){
+      if(!challenge){
+        let challengeRecord = await AuthTools.findActiveChallengeForAccount(publicAddress)
+          
+        if(challengeRecord){
+        challenge = challengeRecord.challenge
+        }
+      }
+
+      if(!challenge){
+        return {success:false, error:'no active challenge found for user'} 
+      }
+
+      let validation = AuthTools.validatePersonalSignature(publicAddress,signature,challenge)
+
+      if(!validation){
+        return {success:false, error:'signature validation failed'} 
+      }
+
+      let authToken = await AuthTools.upsertNewAuthenticationTokenForAccount(publicAddress)
+
+      return {success:true, authToken: authToken} 
+
+    }
+
     static validatePersonalSignature(
       fromAddress: string,
       signature: string,
       challenge: string,
-      signedAt: number
+      signedAt?: number
     ) {
+
+      if(!signedAt) signedAt = Date.now()
       //let challenge = 'Signing for Etherpunks at '.concat(signedAt)
   
       let recoveredAddress = AuthTools.ethJsUtilecRecover(challenge, signature)
