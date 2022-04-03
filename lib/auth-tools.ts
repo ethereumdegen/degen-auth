@@ -50,24 +50,16 @@ export default class AuthTools {
         challenge = AuthTools.generateServiceNameChallengePhrase(  unixTime, serviceName, publicAddress)
       }
 
-      const existingChallengeToken = await AuthTools.findActiveChallengeForAccount(publicAddress) 
-
-
-      let upsert;
-
-      if (existingChallengeToken) {
-        upsert = await ChallengeTokenModel.updateOne(
-          { publicAddress: publicAddress },
-          { challenge: challenge, createdAt: unixTime }
-        )
-      } else {
-        upsert = await ChallengeTokenModel.insertMany({
-          publicAddress: publicAddress,
-          challenge: challenge,
-          createdAt: unixTime,
-        })
-      }
-      return upsert 
+     
+      
+      let upsert = await ChallengeTokenModel.findOneAndUpdate(
+        { publicAddress: publicAddress },
+        { challenge: challenge, createdAt: unixTime },
+        {new:true, upsert:true }
+      )
+     
+      
+      return challenge 
     }
 
 
@@ -109,21 +101,14 @@ export default class AuthTools {
   
       publicAddress = web3utils.toChecksumAddress(publicAddress)
   
-      const existingAuthToken = await AuthTools.findActiveAuthenticationTokenForAccount(publicAddress)
       
-      let upsert 
-      if (existingAuthToken) {
-        upsert = await AuthenticationTokenModel.updateOne(
+      
+       let upsert = await AuthenticationTokenModel.findOneAndUpdate(
           { publicAddress: publicAddress },
-          { token: newToken, createdAt: unixTime }
+          { token: newToken, createdAt: unixTime },
+          {new:true, upsert:true }
         )
-      } else {
-        upsert = await AuthenticationTokenModel.insertMany({
-          publicAddress: publicAddress,
-          token: newToken,
-          createdAt: unixTime,
-        })
-      }
+      
   
       return newToken
     }
