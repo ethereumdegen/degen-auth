@@ -25,7 +25,7 @@ describe('Authentication', () => {
 
     let publicAddress = "0xB11ca87E32075817C82Cc471994943a4290f4a14"
 
-    let serviceChallenge = AuthTools.generateServiceNameChallengePhrase('testApp', publicAddress)
+    let serviceChallenge = AuthTools.generateServiceNameChallengePhrase(Date.now().toString(), 'testApp', publicAddress)
     
     expect(serviceChallenge).to.exist
   })
@@ -35,12 +35,14 @@ describe('Authentication', () => {
 
     let publicAddress = "0xB11ca87E32075817C82Cc471994943a4290f4a14"
 
-    let serviceChallenge = AuthTools.generateServiceNameChallengePhrase('testApp', publicAddress)
+     
+    let savedRecords = await AuthTools.upsertNewChallengeNumberForAccount( publicAddress,  'testApp' )
+    
+    let activeChallenge = await AuthTools.findActiveChallengeForAccount(publicAddress)
 
-    let savedRecords = await AuthTools.saveChallengeForAccount( serviceChallenge, publicAddress )
+    expect(activeChallenge).to.exist
 
     
-    expect(savedRecords[0].challenge).to.exist
   })
 
  
