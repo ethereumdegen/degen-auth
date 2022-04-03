@@ -1,0 +1,14 @@
+{
+    "compilerOptions": {
+      "target": "es6",
+      "resolveJsonModule": true,
+      "lib": ["ES6","dom"],
+      "module": "commonjs",
+      "esModuleInterop": true,
+      "allowSyntheticDefaultImports":true,
+      "strict": true,
+      "outDir": "dist",
+      "sourceMap": true 
+    }
+  }
+  

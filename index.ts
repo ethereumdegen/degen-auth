@@ -1,5 +1,4 @@
 
-
 module.exports =  class DegenAuth {
 
 
@@ -8,6 +7,15 @@ module.exports =  class DegenAuth {
     }
 
 
+    static async initialize(){
+        
+    }
+
+    static async generateAuthenticationChallenge(){
+
+
+
+    }
 
 
 
