@@ -6,7 +6,7 @@ Authentication library for web3 enabled applications
 
 #### How to Use 
 
-1) When a user requests to sign in via web3 with a particular publicAddress, a request is made to your backend which then will call AuthTools.upsertNewChallengeForAccount(publicAddress) .
+1) When a user requests to sign in via web3 with a particular publicAddress, a request is made to your backend which then will call AuthTools.upsertNewChallengeForAccount(publicAddress,serviceName)  where serviceName is the name of your Dapp service.
 
 2. This returns a challenge phrase which your backend will pass back to the frontend in that same call.  The frontend will make metamask request a PersonalSign with that challenge as the message and await the users signature.
 
