@@ -25,11 +25,12 @@ import {AuthTools} from 'degen-auth'
 
  let degenAuthInterface = await AuthTools.initializeDatabase()
 
-await AuthTools.upsertNewChallengeForAccount(degenAuthInterface,publicAddress, serviceName)  
+let challenge = await AuthTools.upsertNewChallengeForAccount(degenAuthInterface,publicAddress, serviceName)  
 
  // personal sign challenge in metamask
+ let signature = userWallet.sign(challenge) 
 
- await AuthTools.generateAuthenticatedSession(degenAuthInterface,publicAddress, signature)  
+let authtoken =  await AuthTools.generateAuthenticatedSession(degenAuthInterface,publicAddress, signature)  
 
 
 //give the authtoken to the user so they store it in their LocalStorage to use for authenticated API requests 
