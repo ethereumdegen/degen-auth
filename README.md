@@ -14,3 +14,22 @@ Authentication library for web3 enabled applications
 
 4. This user can now use this authentication token for your other api requests .  These can require than the authentication token be given to prove that the user has, in the recent past, proven that they know the private key for that public address.   
 
+
+
+#### Code Example 
+
+
+
+import {AuthTools} from 'degen-auth'
+
+
+ let degenAuthInterface = await AuthTools.initializeDatabase()
+
+await AuthTools.upsertNewChallengeForAccount(degenAuthInterface,publicAddress, serviceName)  
+
+ // personal sign challenge in metamask
+
+ await AuthTools.generateAuthenticatedSession(degenAuthInterface,publicAddress, signature)  
+
+
+//give the authtoken to the user so they store it in their LocalStorage to use for authenticated API requests 
