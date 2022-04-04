@@ -2,7 +2,7 @@ import { expect, should } from 'chai'
 import fs from 'fs'
 import path from 'path'
  
-import AuthTools from '../lib/auth-tools'
+import {AuthTools} from '../index'
 import MongoInterface from '../lib/mongo-interface'
 
 import   { Contract, Signer, Wallet } from 'ethers'

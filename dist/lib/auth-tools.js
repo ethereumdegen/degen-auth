@@ -12,6 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.AuthTools = void 0;
 const mongo_interface_1 = __importDefault(require("./mongo-interface"));
 const web3_utils_1 = __importDefault(require("web3-utils"));
 const crypto_1 = __importDefault(require("crypto"));
@@ -162,5 +163,5 @@ class AuthTools {
         return null;
     }
 }
-exports.default = AuthTools;
+exports.AuthTools = AuthTools;
 //# sourceMappingURL=auth-tools.js.map

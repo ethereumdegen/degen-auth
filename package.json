@@ -1,9 +1,8 @@
 {
   "name": "degen-auth",
-  "version": "0.12.0",
+  "version": "0.14.0",
   "description": "Authentication plugin for offchain signature validation of web3 accounts",
   "main": "dist/index.js",
-  "type":"module",
   "scripts": {
     "test": "NODE_ENV=test TS_NODE_PROJECT=\"tsconfig.testing.json\" mocha --require ts-node/register 'test/**/*.ts' --timeout 25000",
     "build": "tsc"
