@@ -17,6 +17,7 @@ const mongo_interface_1 = __importDefault(require("./lib/mongo-interface"));
 const web3_utils_1 = __importDefault(require("web3-utils"));
 const crypto_1 = __importDefault(require("crypto"));
 const ethereumjs_util_1 = require("ethereumjs-util");
+const app_helper_1 = __importDefault(require("./lib/app-helper"));
 const NODE_ENV = process.env.NODE_ENV;
 class DegenAuth {
     constructor() {
@@ -25,16 +26,12 @@ class DegenAuth {
 }
 exports.default = DegenAuth;
 class AuthTools {
-    static getEnvironmentName() {
-        let envName = NODE_ENV ? NODE_ENV : 'unknown';
-        return envName;
-    }
     static initializeDatabase(config) {
         return __awaiter(this, void 0, void 0, function* () {
             let mongoInterface = new mongo_interface_1.default();
             if (!config)
                 config = {};
-            let dbName = config.dbName ? config.dbName : "degenauth".concat('_').concat(AuthTools.getEnvironmentName());
+            let dbName = config.dbName ? config.dbName : "degenauth".concat('_').concat(app_helper_1.default.getEnvironmentName());
             yield mongoInterface.init(dbName, config);
             return mongoInterface;
         });
@@ -96,7 +93,7 @@ class AuthTools {
     static validateAuthenticationTokenForAccount(mongoInterface, publicAddress, authToken) {
         return __awaiter(this, void 0, void 0, function* () {
             //always validate if in dev mode
-            if (AuthTools.getEnvironmentName() == 'development') {
+            if (app_helper_1.default.getEnvironmentName() == 'development') {
                 return true;
             }
             const ONE_DAY = 86400 * 1000;
