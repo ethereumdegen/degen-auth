@@ -6,7 +6,7 @@ import crypto from 'crypto'
 
 import {bufferToHex, toBuffer, hashPersonalMessage, fromRpcSig, ecrecover, pubToAddress} from 'ethereumjs-util'
 
-
+import AppHelper from "./lib/app-helper";
 
 const NODE_ENV = process.env.NODE_ENV
 
@@ -33,11 +33,7 @@ export default class DegenAuth {
 
 export class AuthTools {
 
-    static getEnvironmentName() : string{
-      let envName = NODE_ENV ? NODE_ENV : 'unknown'
-
-      return envName
-    }
+    
 
     static async initializeDatabase(config?: any ) : Promise<MongoInterface> {
  
@@ -45,7 +41,7 @@ export class AuthTools {
 
       if(!config) config = {}
 
-      let dbName = config.dbName ? config.dbName :  "degenauth".concat('_').concat(AuthTools.getEnvironmentName())
+      let dbName = config.dbName ? config.dbName :  "degenauth".concat('_').concat(AppHelper.getEnvironmentName())
  
       await mongoInterface.init(dbName, config)
 
@@ -147,7 +143,7 @@ export class AuthTools {
       authToken: string
     ) {
       //always validate if in dev mode
-      if (AuthTools.getEnvironmentName() == 'development') {
+      if (AppHelper.getEnvironmentName() == 'development') {
         return true
       }
   
