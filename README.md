@@ -28,6 +28,7 @@ import {AuthTools} from 'degen-auth'
 let challenge = await AuthTools.upsertNewChallengeForAccount(degenAuthInterface,publicAddress, serviceName)  
 
  // personal sign challenge in metamask
+ 
  let signature = userWallet.sign(challenge) 
 
 let authtoken =  await AuthTools.generateAuthenticatedSession(degenAuthInterface,publicAddress, signature)  
