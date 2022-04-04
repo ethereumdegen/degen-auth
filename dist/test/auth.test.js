@@ -14,16 +14,15 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const chai_1 = require("chai");
 const auth_tools_1 = __importDefault(require("../lib/auth-tools"));
-const mongo_interface_1 = __importDefault(require("../lib/mongo-interface"));
 const ethers_1 = require("ethers");
 (0, chai_1.should)();
+let mongoInterface;
 let user;
 let otherUser;
 chai_1.should;
 describe('Authentication', () => {
     before(() => __awaiter(void 0, void 0, void 0, function* () {
-        const mongoInterface = new mongo_interface_1.default();
-        yield auth_tools_1.default.initializeDatabase(mongoInterface, {});
+        mongoInterface = yield auth_tools_1.default.initializeDatabase({});
         yield mongoInterface.dropDatabase();
         let mnemonicPhrase = "blossom spatial metal assault riot bullet truck update forward brave slide way";
         user = ethers_1.Wallet.fromMnemonic(mnemonicPhrase, `m/44'/60'/0'/0/0`);
@@ -36,12 +35,12 @@ describe('Authentication', () => {
     }));
     it('can save a challenge', () => __awaiter(void 0, void 0, void 0, function* () {
         let publicAddress = user.address;
-        let savedRecords = yield auth_tools_1.default.upsertNewChallengeForAccount(publicAddress, 'testApp');
-        let activeChallenge = yield auth_tools_1.default.findActiveChallengeForAccount(publicAddress);
+        let savedRecords = yield auth_tools_1.default.upsertNewChallengeForAccount(mongoInterface, publicAddress, 'testApp');
+        let activeChallenge = yield auth_tools_1.default.findActiveChallengeForAccount(mongoInterface, publicAddress);
         (0, chai_1.expect)(activeChallenge).to.exist;
     }));
     it('can validate personal signature', () => __awaiter(void 0, void 0, void 0, function* () {
-        let activeChallenge = yield auth_tools_1.default.findActiveChallengeForAccount(user.address);
+        let activeChallenge = yield auth_tools_1.default.findActiveChallengeForAccount(mongoInterface, user.address);
         if (!activeChallenge)
             throw ('Could not get active challenge');
         let goodSignature = yield user.signMessage(activeChallenge.challenge);
@@ -49,7 +48,7 @@ describe('Authentication', () => {
         (0, chai_1.expect)(validation).to.eql(true);
     }));
     it('can reject bad personal signature', () => __awaiter(void 0, void 0, void 0, function* () {
-        let activeChallenge = yield auth_tools_1.default.findActiveChallengeForAccount(user.address);
+        let activeChallenge = yield auth_tools_1.default.findActiveChallengeForAccount(mongoInterface, user.address);
         if (!activeChallenge)
             throw ('Could not get active challenge');
         let badSignature = yield user.signMessage('improper message');
@@ -57,11 +56,11 @@ describe('Authentication', () => {
         (0, chai_1.expect)(validation).to.eql(false);
     }));
     it('can generate auth session', () => __awaiter(void 0, void 0, void 0, function* () {
-        let activeChallenge = yield auth_tools_1.default.findActiveChallengeForAccount(user.address);
+        let activeChallenge = yield auth_tools_1.default.findActiveChallengeForAccount(mongoInterface, user.address);
         if (!activeChallenge)
             throw ('Could not get active challenge');
         let goodSignature = yield user.signMessage(activeChallenge.challenge);
-        let session = yield auth_tools_1.default.generateAuthenticatedSession(user.address, goodSignature);
+        let session = yield auth_tools_1.default.generateAuthenticatedSession(mongoInterface, user.address, goodSignature);
         console.log('session', session);
         (0, chai_1.expect)(session.success).to.eql(true);
         (0, chai_1.expect)(session.authToken).to.exist;

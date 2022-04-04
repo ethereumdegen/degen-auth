@@ -11,7 +11,7 @@ import   { Contract, Signer, Wallet } from 'ethers'
  
 should()
   
-
+let mongoInterface: MongoInterface
 let user:Wallet 
 let otherUser:Wallet
 should
@@ -19,10 +19,7 @@ describe('Authentication', () => {
  
   before(async () => {
 
-    const mongoInterface = new MongoInterface()
- 
-
-    await AuthTools.initializeDatabase(mongoInterface, {})
+    mongoInterface = await AuthTools.initializeDatabase({})
 
     await mongoInterface.dropDatabase()
 
@@ -48,9 +45,9 @@ describe('Authentication', () => {
 
     let publicAddress = user.address
      
-    let savedRecords = await AuthTools.upsertNewChallengeForAccount( publicAddress,  'testApp' )
+    let savedRecords = await AuthTools.upsertNewChallengeForAccount(mongoInterface, publicAddress,  'testApp' )
     
-    let activeChallenge = await AuthTools.findActiveChallengeForAccount(publicAddress)
+    let activeChallenge = await AuthTools.findActiveChallengeForAccount(mongoInterface, publicAddress)
 
     expect(activeChallenge).to.exist
 
@@ -60,7 +57,7 @@ describe('Authentication', () => {
 
   it('can validate personal signature', async () => {
 
-    let activeChallenge = await AuthTools.findActiveChallengeForAccount(user.address)
+    let activeChallenge = await AuthTools.findActiveChallengeForAccount(mongoInterface, user.address)
 
     if(!activeChallenge) throw('Could not get active challenge')
 
@@ -75,7 +72,7 @@ describe('Authentication', () => {
 
   it('can reject bad personal signature', async () => {
 
-    let activeChallenge = await AuthTools.findActiveChallengeForAccount(user.address)
+    let activeChallenge = await AuthTools.findActiveChallengeForAccount(mongoInterface, user.address)
 
     if(!activeChallenge) throw('Could not get active challenge')
 
@@ -90,13 +87,13 @@ describe('Authentication', () => {
 
   it('can generate auth session', async () => {
 
-    let activeChallenge = await AuthTools.findActiveChallengeForAccount(user.address)
+    let activeChallenge = await AuthTools.findActiveChallengeForAccount(mongoInterface, user.address)
 
     if(!activeChallenge) throw('Could not get active challenge')
 
     let goodSignature = await user.signMessage( activeChallenge.challenge )
 
-    let session = await AuthTools.generateAuthenticatedSession(user.address,goodSignature)
+    let session = await AuthTools.generateAuthenticatedSession(mongoInterface, user.address,goodSignature)
 
     console.log('session',session)
 

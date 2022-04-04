@@ -1,4 +1,4 @@
-import MongoInterface, { AuthenticationTokenModel, ChallengeTokenModel } from "./mongo-interface";
+import MongoInterface from "./mongo-interface";
 import web3utils from 'web3-utils'
 
 import crypto from 'crypto'
@@ -17,7 +17,7 @@ export default class AuthTools {
       return envName
     }
 
-    static async initializeDatabase(config: any ){
+    static async initializeDatabase(config: any ) : Promise<MongoInterface> {
  
       let mongoInterface = new MongoInterface()
 
@@ -41,7 +41,7 @@ export default class AuthTools {
       return accessChallenge
     }
     
-    static async upsertNewChallengeForAccount(publicAddress:string, serviceName: string, challengeGenerator?: Function )   {
+    static async upsertNewChallengeForAccount(mongoInterface:MongoInterface, publicAddress:string, serviceName: string, challengeGenerator?: Function )   {
 
       const unixTime = Date.now().toString()
       
@@ -57,7 +57,7 @@ export default class AuthTools {
 
      
       
-      let upsert = await ChallengeTokenModel.findOneAndUpdate(
+      let upsert = await mongoInterface.ChallengeTokenModel.findOneAndUpdate(
         { publicAddress: publicAddress },
         { challenge: challenge, createdAt: unixTime },
         {new:true, upsert:true }
@@ -69,12 +69,12 @@ export default class AuthTools {
 
 
 
-    static async findActiveChallengeForAccount(publicAddress: string) {
+    static async findActiveChallengeForAccount(mongoInterface:MongoInterface, publicAddress: string) {
       const ONE_DAY = 86400 * 1000
 
       publicAddress = web3utils.toChecksumAddress(publicAddress)
   
-      const existingChallengeToken = await ChallengeTokenModel.findOne({
+      const existingChallengeToken = await mongoInterface.ChallengeTokenModel.findOne({
         publicAddress: publicAddress,
         createdAt: { $gt: Date.now() - ONE_DAY },
       })
@@ -86,12 +86,12 @@ export default class AuthTools {
       return crypto.randomBytes(16).toString('hex')
     }
 
-    static async findActiveAuthenticationTokenForAccount(publicAddress: string) {
+    static async findActiveAuthenticationTokenForAccount(mongoInterface:MongoInterface, publicAddress: string) {
       const ONE_DAY = 86400 * 1000
   
       publicAddress = web3utils.toChecksumAddress(publicAddress)
   
-      const existingAuthToken = await AuthenticationTokenModel.findOne({
+      const existingAuthToken = await mongoInterface.AuthenticationTokenModel.findOne({
         publicAddress: publicAddress,
         createdAt: { $gt: Date.now() - ONE_DAY },
       })
@@ -99,14 +99,14 @@ export default class AuthTools {
       return existingAuthToken
     }
 
-    static async upsertNewAuthenticationTokenForAccount(publicAddress: string) {
+    static async upsertNewAuthenticationTokenForAccount(mongoInterface:MongoInterface, publicAddress: string) {
       const unixTime = Date.now().toString()
   
       const newToken = AuthTools.generateNewAuthenticationToken()
   
       publicAddress = web3utils.toChecksumAddress(publicAddress)
   
-       let upsert = await AuthenticationTokenModel.findOneAndUpdate(
+       let upsert = await mongoInterface.AuthenticationTokenModel.findOneAndUpdate(
           { publicAddress: publicAddress },
           { token: newToken, createdAt: unixTime },
           {new:true, upsert:true }
@@ -120,6 +120,7 @@ export default class AuthTools {
 
 
     static async validateAuthenticationTokenForAccount(
+      mongoInterface:MongoInterface,
       publicAddress: string,
       authToken: string
     ) {
@@ -132,7 +133,7 @@ export default class AuthTools {
   
       publicAddress = web3utils.toChecksumAddress(publicAddress)
   
-      const existingAuthToken = await AuthenticationTokenModel.findOne({
+      const existingAuthToken = await mongoInterface.AuthenticationTokenModel.findOne({
         publicAddress: publicAddress,
         token: authToken,
         createdAt: { $gt: Date.now() - ONE_DAY },
@@ -147,9 +148,9 @@ export default class AuthTools {
     If the signature is valid, then an authentication token is stored in the database and returned by this method so that it can be given to the user and stored on their client side as their session token.
     Then, anyone with that session token can reasonably be trusted to be fully in control of the web3 account for that public address since they were able to personal sign. 
     */
-    static async generateAuthenticatedSession(publicAddress:string, signature:string, challenge?:string){
+    static async generateAuthenticatedSession(mongoInterface:MongoInterface, publicAddress:string, signature:string, challenge?:string){
       if(!challenge){
-        let challengeRecord = await AuthTools.findActiveChallengeForAccount(publicAddress)
+        let challengeRecord = await AuthTools.findActiveChallengeForAccount(mongoInterface,publicAddress)
           
         if(challengeRecord){
         challenge = challengeRecord.challenge
@@ -166,7 +167,7 @@ export default class AuthTools {
         return {success:false, error:'signature validation failed'} 
       }
 
-      let authToken = await AuthTools.upsertNewAuthenticationTokenForAccount(publicAddress)
+      let authToken = await AuthTools.upsertNewAuthenticationTokenForAccount(mongoInterface,publicAddress)
 
       return {success:true, authToken: authToken} 
 

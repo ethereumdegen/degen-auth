@@ -9,26 +9,27 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AuthenticationTokenModel = exports.ChallengeTokenModel = exports.UserModel = void 0;
 const mongoose_1 = require("mongoose");
-const mongoose = new mongoose_1.Mongoose();
-const UserSchema = new mongoose_1.Schema({
-    publicAddress: { type: String, index: true, unique: true },
-});
-const ChallengeTokenSchema = new mongoose_1.Schema({
-    challenge: { type: String },
-    publicAddress: { type: String, index: true, unique: true },
-    createdAt: Number,
-});
-const AuthenticationTokenSchema = new mongoose_1.Schema({
-    token: { type: String },
-    publicAddress: { type: String, index: true, unique: true },
-    createdAt: Number,
-});
-exports.UserModel = mongoose.model('users', UserSchema);
-exports.ChallengeTokenModel = mongoose.model('challengetokens', ChallengeTokenSchema);
-exports.AuthenticationTokenModel = mongoose.model('authenticationtokens', AuthenticationTokenSchema);
 class MongoInterface {
+    constructor() {
+        this.mongoose = new mongoose_1.Mongoose();
+        this.UserSchema = new mongoose_1.Schema({
+            publicAddress: { type: String, index: true, unique: true },
+        });
+        this.ChallengeTokenSchema = new mongoose_1.Schema({
+            challenge: { type: String },
+            publicAddress: { type: String, index: true, unique: true },
+            createdAt: Number,
+        });
+        this.AuthenticationTokenSchema = new mongoose_1.Schema({
+            token: { type: String },
+            publicAddress: { type: String, index: true, unique: true },
+            createdAt: Number,
+        });
+        this.UserModel = this.mongoose.model('users', this.UserSchema);
+        this.ChallengeTokenModel = this.mongoose.model('challengetokens', this.ChallengeTokenSchema);
+        this.AuthenticationTokenModel = this.mongoose.model('authenticationtokens', this.AuthenticationTokenSchema);
+    }
     init(dbName, config) {
         return __awaiter(this, void 0, void 0, function* () {
             let host = 'localhost';
@@ -44,13 +45,13 @@ class MongoInterface {
                 process.exit();
             }
             const url = 'mongodb://' + host + ':' + port + '/' + dbName;
-            yield mongoose.connect(url, {});
+            yield this.mongoose.connect(url, {});
             console.log('connected to ', url, dbName);
         });
     }
     dropDatabase() {
         return __awaiter(this, void 0, void 0, function* () {
-            yield mongoose.connection.db.dropDatabase();
+            yield this.mongoose.connection.db.dropDatabase();
         });
     }
 }

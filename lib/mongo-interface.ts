@@ -8,7 +8,7 @@ import {
     UpdateQuery,
   } from 'mongoose'
   
-const mongoose = new Mongoose()
+
 
 export interface User {
   publicAddress: string
@@ -26,36 +26,42 @@ export interface AuthenticationToken {
   createdAt: number
 }
 
-const UserSchema = new Schema<User>({
-    
-  publicAddress: { type: String, index: true, unique: true },
-})
-
-const ChallengeTokenSchema = new Schema<ChallengeToken>({
-  challenge: { type: String },
-  publicAddress: { type: String, index: true, unique: true },
-  createdAt: Number,
-})
-
-const AuthenticationTokenSchema = new Schema<AuthenticationToken>({
-  token: { type: String },
-  publicAddress: { type: String, index: true, unique: true },
-  createdAt: Number,
-})
-
-export const UserModel = mongoose.model<User>('users', UserSchema)
-
-export const ChallengeTokenModel = mongoose.model<ChallengeToken>(
-  'challengetokens',
-  ChallengeTokenSchema
-)
-export const AuthenticationTokenModel = mongoose.model<AuthenticationToken>(
-  'authenticationtokens',
-  AuthenticationTokenSchema
-)
 
 export default class MongoInterface {
-  async init(dbName: string, config: any) {
+
+
+  mongoose = new Mongoose()
+
+  UserSchema = new Schema<User>({
+    
+    publicAddress: { type: String, index: true, unique: true },
+  })
+  
+  ChallengeTokenSchema = new Schema<ChallengeToken>({
+    challenge: { type: String },
+    publicAddress: { type: String, index: true, unique: true },
+    createdAt: Number,
+  })
+  
+  AuthenticationTokenSchema = new Schema<AuthenticationToken>({
+    token: { type: String },
+    publicAddress: { type: String, index: true, unique: true },
+    createdAt: Number,
+  })
+  
+  UserModel = this.mongoose.model<User>('users', this.UserSchema)
+  
+  ChallengeTokenModel = this.mongoose.model<ChallengeToken>(
+    'challengetokens',
+    this.ChallengeTokenSchema
+  )
+  AuthenticationTokenModel = this.mongoose.model<AuthenticationToken>(
+    'authenticationtokens',
+    this.AuthenticationTokenSchema
+  )
+
+
+  async init(dbName: string, config?: any) {
     let host = 'localhost'
     let port = 27017
 
@@ -72,11 +78,11 @@ export default class MongoInterface {
     }
 
     const url = 'mongodb://' + host + ':' + port + '/' + dbName
-    await mongoose.connect(url, {})
+    await this.mongoose.connect(url, {})
     console.log('connected to ', url, dbName)
   }
 
   async dropDatabase() {
-    await mongoose.connection.db.dropDatabase()
+    await this.mongoose.connection.db.dropDatabase()
   }
 }
