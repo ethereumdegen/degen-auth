@@ -10,7 +10,7 @@ import AppHelper from "./lib/app-helper";
 
 import ExtensibleMongooseDatabase from "extensible-mongoose";
 
-import DegenAuthExtension from './lib/degen-auth-database-extension';
+import DegenAuthExtension, { ChallengeTokenSchema , AuthenticationTokenSchema} from './lib/degen-auth-database-extension';
 
 const NODE_ENV = process.env.NODE_ENV
 
@@ -49,7 +49,7 @@ export default class DegenAuth {
 
      
       
-      let upsert = await mongoInterface.getModel('challengetokens').findOneAndUpdate(
+      let upsert = await mongoInterface.getModel(ChallengeTokenSchema).findOneAndUpdate(
         { publicAddress: publicAddress },
         { challenge: challenge, createdAt: unixTime },
         {new:true, upsert:true }
@@ -66,7 +66,7 @@ export default class DegenAuth {
 
       publicAddress = web3utils.toChecksumAddress(publicAddress)
   
-      const existingChallengeToken = await mongoDB.getModel('challengetokens').findOne({
+      const existingChallengeToken = await mongoDB.getModel(ChallengeTokenSchema).findOne({
         publicAddress: publicAddress,
         createdAt: { $gt: Date.now() - ONE_DAY },
       })
@@ -83,7 +83,7 @@ export default class DegenAuth {
   
       publicAddress = web3utils.toChecksumAddress(publicAddress)
   
-      const existingAuthToken = await mongoDB.getModel('authenticationtokens').findOne({
+      const existingAuthToken = await mongoDB.getModel(AuthenticationTokenSchema).findOne({
         publicAddress: publicAddress,
         createdAt: { $gt: Date.now() - ONE_DAY },
       })
@@ -98,7 +98,7 @@ export default class DegenAuth {
   
       publicAddress = web3utils.toChecksumAddress(publicAddress)
   
-       let upsert = await mongoDB.getModel('authenticationtokens').findOneAndUpdate(
+       let upsert = await mongoDB.getModel(AuthenticationTokenSchema).findOneAndUpdate(
           { publicAddress: publicAddress },
           { token: newToken, createdAt: unixTime },
           {new:true, upsert:true }
@@ -125,7 +125,7 @@ export default class DegenAuth {
   
       publicAddress = web3utils.toChecksumAddress(publicAddress)
   
-      const existingAuthToken = await mongoDB.getModel('authenticationtokens').findOne({
+      const existingAuthToken = await mongoDB.getModel(AuthenticationTokenSchema).findOne({
         publicAddress: publicAddress,
         token: authToken,
         createdAt: { $gt: Date.now() - ONE_DAY },

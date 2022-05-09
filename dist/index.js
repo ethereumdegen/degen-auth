@@ -17,6 +17,7 @@ const web3_utils_1 = __importDefault(require("web3-utils"));
 const crypto_1 = __importDefault(require("crypto"));
 const ethereumjs_util_1 = require("ethereumjs-util");
 const app_helper_1 = __importDefault(require("./lib/app-helper"));
+const degen_auth_database_extension_1 = require("./lib/degen-auth-database-extension");
 const NODE_ENV = process.env.NODE_ENV;
 class DegenAuth {
     constructor(mongoDB) {
@@ -38,7 +39,7 @@ class DegenAuth {
             else {
                 challenge = DegenAuth.generateServiceNameChallengePhrase(unixTime, serviceName, publicAddress);
             }
-            let upsert = yield mongoInterface.getModel('challengetokens').findOneAndUpdate({ publicAddress: publicAddress }, { challenge: challenge, createdAt: unixTime }, { new: true, upsert: true });
+            let upsert = yield mongoInterface.getModel(degen_auth_database_extension_1.ChallengeTokenSchema).findOneAndUpdate({ publicAddress: publicAddress }, { challenge: challenge, createdAt: unixTime }, { new: true, upsert: true });
             return challenge;
         });
     }
@@ -46,7 +47,7 @@ class DegenAuth {
         return __awaiter(this, void 0, void 0, function* () {
             const ONE_DAY = 86400 * 1000;
             publicAddress = web3_utils_1.default.toChecksumAddress(publicAddress);
-            const existingChallengeToken = yield mongoDB.getModel('challengetokens').findOne({
+            const existingChallengeToken = yield mongoDB.getModel(degen_auth_database_extension_1.ChallengeTokenSchema).findOne({
                 publicAddress: publicAddress,
                 createdAt: { $gt: Date.now() - ONE_DAY },
             });
@@ -60,7 +61,7 @@ class DegenAuth {
         return __awaiter(this, void 0, void 0, function* () {
             const ONE_DAY = 86400 * 1000;
             publicAddress = web3_utils_1.default.toChecksumAddress(publicAddress);
-            const existingAuthToken = yield mongoDB.getModel('authenticationtokens').findOne({
+            const existingAuthToken = yield mongoDB.getModel(degen_auth_database_extension_1.AuthenticationTokenSchema).findOne({
                 publicAddress: publicAddress,
                 createdAt: { $gt: Date.now() - ONE_DAY },
             });
@@ -72,7 +73,7 @@ class DegenAuth {
             const unixTime = Date.now().toString();
             const newToken = DegenAuth.generateNewAuthenticationToken();
             publicAddress = web3_utils_1.default.toChecksumAddress(publicAddress);
-            let upsert = yield mongoDB.getModel('authenticationtokens').findOneAndUpdate({ publicAddress: publicAddress }, { token: newToken, createdAt: unixTime }, { new: true, upsert: true });
+            let upsert = yield mongoDB.getModel(degen_auth_database_extension_1.AuthenticationTokenSchema).findOneAndUpdate({ publicAddress: publicAddress }, { token: newToken, createdAt: unixTime }, { new: true, upsert: true });
             return newToken;
         });
     }
@@ -84,7 +85,7 @@ class DegenAuth {
             }
             const ONE_DAY = 86400 * 1000;
             publicAddress = web3_utils_1.default.toChecksumAddress(publicAddress);
-            const existingAuthToken = yield mongoDB.getModel('authenticationtokens').findOne({
+            const existingAuthToken = yield mongoDB.getModel(degen_auth_database_extension_1.AuthenticationTokenSchema).findOne({
                 publicAddress: publicAddress,
                 token: authToken,
                 createdAt: { $gt: Date.now() - ONE_DAY },

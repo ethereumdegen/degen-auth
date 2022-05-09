@@ -9,10 +9,7 @@ import {
   } from 'mongoose'
   
 
-
-export interface AuthUser {
-  publicAddress: string
-}
+ 
 
 export interface ChallengeToken {
   challenge: string
@@ -27,11 +24,7 @@ export interface AuthenticationToken {
 }
 
 
-
-export const AuthUserSchema = new Schema<AuthUser>({
-    
-  publicAddress: { type: String, index: true, unique: true },
-})
+ 
 
 export const  ChallengeTokenSchema = new Schema<ChallengeToken>({
   challenge: { type: String },
@@ -56,7 +49,7 @@ export default class DegenAuthExtension extends DatabaseExtension {
   getBindableModels() : Array<RegisteredModel>{
 
       return [
-          {tableName:'authusers',schema:AuthUserSchema},
+          
           {tableName:'challengetokens',schema:ChallengeTokenSchema},
           {tableName:'authenticationtokens',schema:AuthenticationTokenSchema}
       ]
