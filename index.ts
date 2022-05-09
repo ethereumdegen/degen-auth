@@ -1,5 +1,5 @@
 
-import MongoInterface from "./lib/mongo-interface";
+//import MongoInterface from "./lib/degen-auth-database-extension";
 import web3utils from 'web3-utils'
 
 import crypto from 'crypto'
@@ -8,47 +8,22 @@ import {bufferToHex, toBuffer, hashPersonalMessage, fromRpcSig, ecrecover, pubTo
 
 import AppHelper from "./lib/app-helper";
 
+import ExtensibleMongooseDatabase from "extensible-mongoose";
+
 const NODE_ENV = process.env.NODE_ENV
 
+
+ 
 
 
 
 export default class DegenAuth {
 
- 
-
-
-    constructor(){
-        console.log('Initializing degen-auth.')
-    }
-
-
-    
-
- 
-
-}
-
-
-
-export class AuthTools {
-
-    
-
-    static async initializeDatabase(config?: any ) : Promise<MongoInterface> {
- 
-      let mongoInterface = new MongoInterface()
-
-      if(!config) config = {}
-
-      let dbName = config.dbName ? config.dbName :  "degenauth".concat('_').concat(AppHelper.getEnvironmentName())
- 
-      await mongoInterface.init(dbName, config)
-
-      return mongoInterface
+    constructor(public mongoDB: ExtensibleMongooseDatabase){
 
     }
-
+    
+ 
     static generateServiceNameChallengePhrase(unixTime:string, serviceName:string, publicAddress: string){
         
       
@@ -59,7 +34,7 @@ export class AuthTools {
       return accessChallenge
     }
     
-    static async upsertNewChallengeForAccount(mongoInterface:MongoInterface, publicAddress:string, serviceName: string, challengeGenerator?: Function )   {
+    static async upsertNewChallengeForAccount(mongoInterface:ExtensibleMongooseDatabase, publicAddress:string, serviceName: string, challengeGenerator?: Function )   {
 
       const unixTime = Date.now().toString()
       
@@ -70,12 +45,12 @@ export class AuthTools {
       if(challengeGenerator){
         challenge = challengeGenerator( unixTime, serviceName, publicAddress )
       }else{
-        challenge = AuthTools.generateServiceNameChallengePhrase(  unixTime, serviceName, publicAddress)
+        challenge = DegenAuth.generateServiceNameChallengePhrase(  unixTime, serviceName, publicAddress)
       }
 
      
       
-      let upsert = await mongoInterface.ChallengeTokenModel.findOneAndUpdate(
+      let upsert = await mongoInterface.getModel('challengetokens').findOneAndUpdate(
         { publicAddress: publicAddress },
         { challenge: challenge, createdAt: unixTime },
         {new:true, upsert:true }
@@ -87,12 +62,12 @@ export class AuthTools {
 
 
 
-    static async findActiveChallengeForAccount(mongoInterface:MongoInterface, publicAddress: string) {
+    static async findActiveChallengeForAccount(mongoDB:ExtensibleMongooseDatabase, publicAddress: string) {
       const ONE_DAY = 86400 * 1000
 
       publicAddress = web3utils.toChecksumAddress(publicAddress)
   
-      const existingChallengeToken = await mongoInterface.ChallengeTokenModel.findOne({
+      const existingChallengeToken = await mongoDB.getModel('challengetokens').findOne({
         publicAddress: publicAddress,
         createdAt: { $gt: Date.now() - ONE_DAY },
       })
@@ -104,12 +79,12 @@ export class AuthTools {
       return crypto.randomBytes(16).toString('hex')
     }
 
-    static async findActiveAuthenticationTokenForAccount(mongoInterface:MongoInterface, publicAddress: string) {
+    static async findActiveAuthenticationTokenForAccount(mongoDB:ExtensibleMongooseDatabase, publicAddress: string) {
       const ONE_DAY = 86400 * 1000
   
       publicAddress = web3utils.toChecksumAddress(publicAddress)
   
-      const existingAuthToken = await mongoInterface.AuthenticationTokenModel.findOne({
+      const existingAuthToken = await mongoDB.getModel('authenticationtokens').findOne({
         publicAddress: publicAddress,
         createdAt: { $gt: Date.now() - ONE_DAY },
       })
@@ -117,14 +92,14 @@ export class AuthTools {
       return existingAuthToken
     }
 
-    static async upsertNewAuthenticationTokenForAccount(mongoInterface:MongoInterface, publicAddress: string) {
+    static async upsertNewAuthenticationTokenForAccount(mongoDB:ExtensibleMongooseDatabase, publicAddress: string) {
       const unixTime = Date.now().toString()
   
-      const newToken = AuthTools.generateNewAuthenticationToken()
+      const newToken = DegenAuth.generateNewAuthenticationToken()
   
       publicAddress = web3utils.toChecksumAddress(publicAddress)
   
-       let upsert = await mongoInterface.AuthenticationTokenModel.findOneAndUpdate(
+       let upsert = await mongoDB.getModel('authenticationtokens').findOneAndUpdate(
           { publicAddress: publicAddress },
           { token: newToken, createdAt: unixTime },
           {new:true, upsert:true }
@@ -138,7 +113,7 @@ export class AuthTools {
 
 
     static async validateAuthenticationTokenForAccount(
-      mongoInterface:MongoInterface,
+      mongoDB:ExtensibleMongooseDatabase,
       publicAddress: string,
       authToken: string
     ) {
@@ -151,7 +126,7 @@ export class AuthTools {
   
       publicAddress = web3utils.toChecksumAddress(publicAddress)
   
-      const existingAuthToken = await mongoInterface.AuthenticationTokenModel.findOne({
+      const existingAuthToken = await mongoDB.getModel('authenticationtokens').findOne({
         publicAddress: publicAddress,
         token: authToken,
         createdAt: { $gt: Date.now() - ONE_DAY },
@@ -166,9 +141,9 @@ export class AuthTools {
     If the signature is valid, then an authentication token is stored in the database and returned by this method so that it can be given to the user and stored on their client side as their session token.
     Then, anyone with that session token can reasonably be trusted to be fully in control of the web3 account for that public address since they were able to personal sign. 
     */
-    static async generateAuthenticatedSession(mongoInterface:MongoInterface, publicAddress:string, signature:string, challenge?:string){
+    static async generateAuthenticatedSession(mongoDB:ExtensibleMongooseDatabase, publicAddress:string, signature:string, challenge?:string){
       if(!challenge){
-        let challengeRecord = await AuthTools.findActiveChallengeForAccount(mongoInterface,publicAddress)
+        let challengeRecord = await DegenAuth.findActiveChallengeForAccount(mongoDB,publicAddress)
           
         if(challengeRecord){
         challenge = challengeRecord.challenge
@@ -179,13 +154,13 @@ export class AuthTools {
         return {success:false, error:'no active challenge found for user'} 
       }
 
-      let validation = AuthTools.validatePersonalSignature(publicAddress,signature,challenge)
+      let validation = DegenAuth.validatePersonalSignature(publicAddress,signature,challenge)
 
       if(!validation){
         return {success:false, error:'signature validation failed'} 
       }
 
-      let authToken = await AuthTools.upsertNewAuthenticationTokenForAccount(mongoInterface,publicAddress)
+      let authToken = await DegenAuth.upsertNewAuthenticationTokenForAccount(mongoDB,publicAddress)
 
       return {success:true, authToken: authToken} 
 
@@ -201,7 +176,7 @@ export class AuthTools {
       if(!signedAt) signedAt = Date.now()
       //let challenge = 'Signing for Etherpunks at '.concat(signedAt)
   
-      let recoveredAddress = AuthTools.ethJsUtilecRecover(challenge, signature)
+      let recoveredAddress = DegenAuth.ethJsUtilecRecover(challenge, signature)
   
       if (!recoveredAddress) {
         console.log('mismatch address')

@@ -2,16 +2,18 @@ import { expect, should } from 'chai'
 import fs from 'fs'
 import path from 'path'
  
-import {AuthTools} from '../index'
-import MongoInterface from '../lib/mongo-interface'
+import DegenAuth from '../index'
+import MongoInterface from '../lib/degen-auth-database-extension'
 
 import   { Contract, Signer, Wallet } from 'ethers'
+import ExtensibleMongooseDatabase from 'extensible-mongoose'
+import DegenAuthExtension from '../lib/degen-auth-database-extension'
 
 
  
 should()
   
-let mongoInterface: MongoInterface
+let mongoInterface: ExtensibleMongooseDatabase
 let user:Wallet 
 let otherUser:Wallet
 should
@@ -19,14 +21,18 @@ describe('Authentication', () => {
  
   before(async () => {
 
-    mongoInterface = await AuthTools.initializeDatabase({})
+    mongoInterface = new ExtensibleMongooseDatabase()
+    await mongoInterface.init('auth_test_db')
+
+    let degenAuthExtension = new DegenAuthExtension(mongoInterface)
+    degenAuthExtension.bindModelsToDatabase()
 
     await mongoInterface.dropDatabase()
 
-    let mnemonicPhrase = "blossom spatial metal assault riot bullet truck update forward brave slide way"
 
-    user =  Wallet.fromMnemonic(mnemonicPhrase!, `m/44'/60'/0'/0/0`)
-    otherUser =  Wallet.fromMnemonic(mnemonicPhrase!, `m/44'/60'/0'/0/1`)
+   
+    user =  Wallet.createRandom()
+    otherUser =  Wallet.createRandom()
     
 
   })
@@ -35,7 +41,7 @@ describe('Authentication', () => {
 
     let publicAddress = user.address
 
-    let serviceChallenge = AuthTools.generateServiceNameChallengePhrase(Date.now().toString(), 'testApp', publicAddress)
+    let serviceChallenge = DegenAuth.generateServiceNameChallengePhrase(Date.now().toString(), 'testApp', publicAddress)
     
     expect(serviceChallenge).to.exist
   })
@@ -45,9 +51,9 @@ describe('Authentication', () => {
 
     let publicAddress = user.address
      
-    let savedRecords = await AuthTools.upsertNewChallengeForAccount(mongoInterface, publicAddress,  'testApp' )
+    let savedRecords = await DegenAuth.upsertNewChallengeForAccount(mongoInterface, publicAddress,  'testApp' )
     
-    let activeChallenge = await AuthTools.findActiveChallengeForAccount(mongoInterface, publicAddress)
+    let activeChallenge = await DegenAuth.findActiveChallengeForAccount(mongoInterface, publicAddress)
 
     expect(activeChallenge).to.exist
 
@@ -57,13 +63,13 @@ describe('Authentication', () => {
 
   it('can validate personal signature', async () => {
 
-    let activeChallenge = await AuthTools.findActiveChallengeForAccount(mongoInterface, user.address)
+    let activeChallenge = await DegenAuth.findActiveChallengeForAccount(mongoInterface, user.address)
 
     if(!activeChallenge) throw('Could not get active challenge')
 
     let goodSignature = await user.signMessage( activeChallenge.challenge )
 
-    let validation = AuthTools.validatePersonalSignature(user.address,goodSignature,activeChallenge.challenge)
+    let validation = DegenAuth.validatePersonalSignature(user.address,goodSignature,activeChallenge.challenge)
 
     expect(validation).to.eql(true)
 
@@ -72,13 +78,13 @@ describe('Authentication', () => {
 
   it('can reject bad personal signature', async () => {
 
-    let activeChallenge = await AuthTools.findActiveChallengeForAccount(mongoInterface, user.address)
+    let activeChallenge = await DegenAuth.findActiveChallengeForAccount(mongoInterface, user.address)
 
     if(!activeChallenge) throw('Could not get active challenge')
 
     let badSignature = await user.signMessage( 'improper message' )
 
-    let validation = AuthTools.validatePersonalSignature(user.address,badSignature,activeChallenge.challenge)
+    let validation = DegenAuth.validatePersonalSignature(user.address,badSignature,activeChallenge.challenge)
 
     expect(validation).to.eql(false)
 
@@ -87,13 +93,13 @@ describe('Authentication', () => {
 
   it('can generate auth session', async () => {
 
-    let activeChallenge = await AuthTools.findActiveChallengeForAccount(mongoInterface, user.address)
+    let activeChallenge = await DegenAuth.findActiveChallengeForAccount(mongoInterface, user.address)
 
     if(!activeChallenge) throw('Could not get active challenge')
 
     let goodSignature = await user.signMessage( activeChallenge.challenge )
 
-    let session = await AuthTools.generateAuthenticatedSession(mongoInterface, user.address,goodSignature)
+    let session = await DegenAuth.generateAuthenticatedSession(mongoInterface, user.address,goodSignature)
 
     console.log('session',session)
 
