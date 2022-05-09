@@ -2,14 +2,11 @@ import { expect, should } from 'chai'
 import fs from 'fs'
 import path from 'path'
  
-import DegenAuth from '../index'
-import MongoInterface from '../lib/degen-auth-database-extension'
+import DegenAuth, {DegenAuthExtension} from '../index' 
 
 import   { Contract, Signer, Wallet } from 'ethers'
 import ExtensibleMongooseDatabase from 'extensible-mongoose'
-import DegenAuthExtension from '../lib/degen-auth-database-extension'
-
-
+ 
  
 should()
   

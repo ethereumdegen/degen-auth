@@ -1,5 +1,5 @@
 
-import ExtensibleMongoDatabase, { DatabaseExtension, RegisteredModel } from 'extensible-mongoose'
+import ExtensibleMongoDatabase, { DatabaseExtension, RegisteredModel, TableDefinition } from 'extensible-mongoose'
 
 
 import {
@@ -38,20 +38,28 @@ export const  AuthenticationTokenSchema = new Schema<AuthenticationToken>({
   createdAt: Number,
 })
 
+export const ChallengeTokenDefinition:TableDefinition={
+  tableName:'challengetokens',schema:ChallengeTokenSchema
+}
 
-export default class DegenAuthExtension extends DatabaseExtension {
+
+export const AuthenticationTokenDefinition:TableDefinition={
+  tableName:'authenticationtokens',schema:ChallengeTokenSchema
+}
+
+export class DegenAuthExtension extends DatabaseExtension {
 
   
-    constructor(mongoDatabase:ExtensibleMongoDatabase){
+  constructor(mongoDatabase:ExtensibleMongoDatabase){
       super(mongoDatabase)       
   }
 
-  getBindableModels() : Array<RegisteredModel>{
+  getBindableModels() : Array<TableDefinition>{
 
       return [
           
-          {tableName:'challengetokens',schema:ChallengeTokenSchema},
-          {tableName:'authenticationtokens',schema:AuthenticationTokenSchema}
+        ChallengeTokenDefinition,
+        AuthenticationTokenDefinition
       ]
   }
 

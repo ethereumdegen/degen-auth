@@ -10,10 +10,10 @@ import AppHelper from "./lib/app-helper";
 
 import ExtensibleMongooseDatabase from "extensible-mongoose";
 
-import DegenAuthExtension, { ChallengeTokenSchema , AuthenticationTokenSchema} from './lib/degen-auth-database-extension';
+import { ChallengeTokenSchema , AuthenticationTokenSchema, ChallengeTokenDefinition, AuthenticationTokenDefinition} from './lib/degen-auth-database-extension';
 
-const NODE_ENV = process.env.NODE_ENV
-
+  
+export * from "./lib/degen-auth-database-extension";
  
 
 export default class DegenAuth {
@@ -49,7 +49,7 @@ export default class DegenAuth {
 
      
       
-      let upsert = await mongoInterface.getModel(ChallengeTokenSchema).findOneAndUpdate(
+      let upsert = await mongoInterface.getModel(ChallengeTokenDefinition).findOneAndUpdate(
         { publicAddress: publicAddress },
         { challenge: challenge, createdAt: unixTime },
         {new:true, upsert:true }
@@ -66,7 +66,7 @@ export default class DegenAuth {
 
       publicAddress = web3utils.toChecksumAddress(publicAddress)
   
-      const existingChallengeToken = await mongoDB.getModel(ChallengeTokenSchema).findOne({
+      const existingChallengeToken = await mongoDB.getModel(ChallengeTokenDefinition).findOne({
         publicAddress: publicAddress,
         createdAt: { $gt: Date.now() - ONE_DAY },
       })
@@ -83,7 +83,7 @@ export default class DegenAuth {
   
       publicAddress = web3utils.toChecksumAddress(publicAddress)
   
-      const existingAuthToken = await mongoDB.getModel(AuthenticationTokenSchema).findOne({
+      const existingAuthToken = await mongoDB.getModel(AuthenticationTokenDefinition).findOne({
         publicAddress: publicAddress,
         createdAt: { $gt: Date.now() - ONE_DAY },
       })
@@ -98,7 +98,7 @@ export default class DegenAuth {
   
       publicAddress = web3utils.toChecksumAddress(publicAddress)
   
-       let upsert = await mongoDB.getModel(AuthenticationTokenSchema).findOneAndUpdate(
+       let upsert = await mongoDB.getModel(AuthenticationTokenDefinition).findOneAndUpdate(
           { publicAddress: publicAddress },
           { token: newToken, createdAt: unixTime },
           {new:true, upsert:true }
@@ -125,7 +125,7 @@ export default class DegenAuth {
   
       publicAddress = web3utils.toChecksumAddress(publicAddress)
   
-      const existingAuthToken = await mongoDB.getModel(AuthenticationTokenSchema).findOne({
+      const existingAuthToken = await mongoDB.getModel(AuthenticationTokenDefinition).findOne({
         publicAddress: publicAddress,
         token: authToken,
         createdAt: { $gt: Date.now() - ONE_DAY },
