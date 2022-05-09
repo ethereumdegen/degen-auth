@@ -10,12 +10,11 @@ import AppHelper from "./lib/app-helper";
 
 import ExtensibleMongooseDatabase from "extensible-mongoose";
 
+import DegenAuthExtension from './lib/degen-auth-database-extension';
+
 const NODE_ENV = process.env.NODE_ENV
 
-
  
-
-
 
 export default class DegenAuth {
 
