@@ -12,29 +12,15 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AuthTools = void 0;
-const mongo_interface_1 = __importDefault(require("./lib/mongo-interface"));
+//import MongoInterface from "./lib/degen-auth-database-extension";
 const web3_utils_1 = __importDefault(require("web3-utils"));
 const crypto_1 = __importDefault(require("crypto"));
 const ethereumjs_util_1 = require("ethereumjs-util");
 const app_helper_1 = __importDefault(require("./lib/app-helper"));
 const NODE_ENV = process.env.NODE_ENV;
 class DegenAuth {
-    constructor() {
-        console.log('Initializing degen-auth.');
-    }
-}
-exports.default = DegenAuth;
-class AuthTools {
-    static initializeDatabase(config) {
-        return __awaiter(this, void 0, void 0, function* () {
-            let mongoInterface = new mongo_interface_1.default();
-            if (!config)
-                config = {};
-            let dbName = config.dbName ? config.dbName : "degenauth".concat('_').concat(app_helper_1.default.getEnvironmentName());
-            yield mongoInterface.init(dbName, config);
-            return mongoInterface;
-        });
+    constructor(mongoDB) {
+        this.mongoDB = mongoDB;
     }
     static generateServiceNameChallengePhrase(unixTime, serviceName, publicAddress) {
         publicAddress = web3_utils_1.default.toChecksumAddress(publicAddress);
@@ -50,17 +36,17 @@ class AuthTools {
                 challenge = challengeGenerator(unixTime, serviceName, publicAddress);
             }
             else {
-                challenge = AuthTools.generateServiceNameChallengePhrase(unixTime, serviceName, publicAddress);
+                challenge = DegenAuth.generateServiceNameChallengePhrase(unixTime, serviceName, publicAddress);
             }
-            let upsert = yield mongoInterface.ChallengeTokenModel.findOneAndUpdate({ publicAddress: publicAddress }, { challenge: challenge, createdAt: unixTime }, { new: true, upsert: true });
+            let upsert = yield mongoInterface.getModel('challengetokens').findOneAndUpdate({ publicAddress: publicAddress }, { challenge: challenge, createdAt: unixTime }, { new: true, upsert: true });
             return challenge;
         });
     }
-    static findActiveChallengeForAccount(mongoInterface, publicAddress) {
+    static findActiveChallengeForAccount(mongoDB, publicAddress) {
         return __awaiter(this, void 0, void 0, function* () {
             const ONE_DAY = 86400 * 1000;
             publicAddress = web3_utils_1.default.toChecksumAddress(publicAddress);
-            const existingChallengeToken = yield mongoInterface.ChallengeTokenModel.findOne({
+            const existingChallengeToken = yield mongoDB.getModel('challengetokens').findOne({
                 publicAddress: publicAddress,
                 createdAt: { $gt: Date.now() - ONE_DAY },
             });
@@ -70,27 +56,27 @@ class AuthTools {
     static generateNewAuthenticationToken() {
         return crypto_1.default.randomBytes(16).toString('hex');
     }
-    static findActiveAuthenticationTokenForAccount(mongoInterface, publicAddress) {
+    static findActiveAuthenticationTokenForAccount(mongoDB, publicAddress) {
         return __awaiter(this, void 0, void 0, function* () {
             const ONE_DAY = 86400 * 1000;
             publicAddress = web3_utils_1.default.toChecksumAddress(publicAddress);
-            const existingAuthToken = yield mongoInterface.AuthenticationTokenModel.findOne({
+            const existingAuthToken = yield mongoDB.getModel('authenticationtokens').findOne({
                 publicAddress: publicAddress,
                 createdAt: { $gt: Date.now() - ONE_DAY },
             });
             return existingAuthToken;
         });
     }
-    static upsertNewAuthenticationTokenForAccount(mongoInterface, publicAddress) {
+    static upsertNewAuthenticationTokenForAccount(mongoDB, publicAddress) {
         return __awaiter(this, void 0, void 0, function* () {
             const unixTime = Date.now().toString();
-            const newToken = AuthTools.generateNewAuthenticationToken();
+            const newToken = DegenAuth.generateNewAuthenticationToken();
             publicAddress = web3_utils_1.default.toChecksumAddress(publicAddress);
-            let upsert = yield mongoInterface.AuthenticationTokenModel.findOneAndUpdate({ publicAddress: publicAddress }, { token: newToken, createdAt: unixTime }, { new: true, upsert: true });
+            let upsert = yield mongoDB.getModel('authenticationtokens').findOneAndUpdate({ publicAddress: publicAddress }, { token: newToken, createdAt: unixTime }, { new: true, upsert: true });
             return newToken;
         });
     }
-    static validateAuthenticationTokenForAccount(mongoInterface, publicAddress, authToken) {
+    static validateAuthenticationTokenForAccount(mongoDB, publicAddress, authToken) {
         return __awaiter(this, void 0, void 0, function* () {
             //always validate if in dev mode
             if (app_helper_1.default.getEnvironmentName() == 'development') {
@@ -98,7 +84,7 @@ class AuthTools {
             }
             const ONE_DAY = 86400 * 1000;
             publicAddress = web3_utils_1.default.toChecksumAddress(publicAddress);
-            const existingAuthToken = yield mongoInterface.AuthenticationTokenModel.findOne({
+            const existingAuthToken = yield mongoDB.getModel('authenticationtokens').findOne({
                 publicAddress: publicAddress,
                 token: authToken,
                 createdAt: { $gt: Date.now() - ONE_DAY },
@@ -111,10 +97,10 @@ class AuthTools {
     If the signature is valid, then an authentication token is stored in the database and returned by this method so that it can be given to the user and stored on their client side as their session token.
     Then, anyone with that session token can reasonably be trusted to be fully in control of the web3 account for that public address since they were able to personal sign.
     */
-    static generateAuthenticatedSession(mongoInterface, publicAddress, signature, challenge) {
+    static generateAuthenticatedSession(mongoDB, publicAddress, signature, challenge) {
         return __awaiter(this, void 0, void 0, function* () {
             if (!challenge) {
-                let challengeRecord = yield AuthTools.findActiveChallengeForAccount(mongoInterface, publicAddress);
+                let challengeRecord = yield DegenAuth.findActiveChallengeForAccount(mongoDB, publicAddress);
                 if (challengeRecord) {
                     challenge = challengeRecord.challenge;
                 }
@@ -122,11 +108,11 @@ class AuthTools {
             if (!challenge) {
                 return { success: false, error: 'no active challenge found for user' };
             }
-            let validation = AuthTools.validatePersonalSignature(publicAddress, signature, challenge);
+            let validation = DegenAuth.validatePersonalSignature(publicAddress, signature, challenge);
             if (!validation) {
                 return { success: false, error: 'signature validation failed' };
             }
-            let authToken = yield AuthTools.upsertNewAuthenticationTokenForAccount(mongoInterface, publicAddress);
+            let authToken = yield DegenAuth.upsertNewAuthenticationTokenForAccount(mongoDB, publicAddress);
             return { success: true, authToken: authToken };
         });
     }
@@ -134,7 +120,7 @@ class AuthTools {
         if (!signedAt)
             signedAt = Date.now();
         //let challenge = 'Signing for Etherpunks at '.concat(signedAt)
-        let recoveredAddress = AuthTools.ethJsUtilecRecover(challenge, signature);
+        let recoveredAddress = DegenAuth.ethJsUtilecRecover(challenge, signature);
         if (!recoveredAddress) {
             console.log('mismatch address');
             return false;
@@ -166,5 +152,5 @@ class AuthTools {
         return null;
     }
 }
-exports.AuthTools = AuthTools;
+exports.default = DegenAuth;
 //# sourceMappingURL=index.js.map
