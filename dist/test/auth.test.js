@@ -91,5 +91,17 @@ describe('Authentication', () => {
         (0, chai_1.expect)(session.success).to.eql(true);
         (0, chai_1.expect)(session.authToken).to.exist;
     }));
+    it('can save an auth token ', () => __awaiter(void 0, void 0, void 0, function* () {
+        let publicAddress = user.address;
+        let newToken = yield index_1.default.upsertNewAuthenticationTokenForAccount(mongoInterface, publicAddress);
+        //let activeChallenge = await DegenAuth.findActiveChallengeForAccount(mongoInterface, publicAddress)
+        (0, chai_1.expect)(newToken).to.exist;
+        let record = yield mongoInterface.getModel(index_1.AuthenticationTokenDefinition).findOne({ publicAddress: publicAddress });
+        console.log('record', record);
+        (0, chai_1.expect)(record.token).to.exist;
+        let matchingToken = yield index_1.default.validateAuthenticationTokenForAccount(mongoInterface, publicAddress, newToken);
+        (0, chai_1.expect)(matchingToken).to.exist;
+        console.log('matchingToken', matchingToken);
+    }));
 });
 //# sourceMappingURL=auth.test.js.map

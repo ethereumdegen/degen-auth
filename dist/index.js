@@ -87,7 +87,7 @@ class DegenAuth {
             const unixTime = Date.now().toString();
             const newToken = DegenAuth.generateNewAuthenticationToken();
             publicAddress = web3_utils_1.default.toChecksumAddress(publicAddress);
-            let upsert = yield mongoDB.getModel(degen_auth_database_extension_1.AuthenticationTokenDefinition).findOneAndUpdate({ publicAddress: publicAddress }, { token: newToken, createdAt: unixTime }, { new: true, upsert: true });
+            let upsert = yield mongoDB.getModel(degen_auth_database_extension_1.AuthenticationTokenDefinition).findOneAndUpdate({ publicAddress: publicAddress }, { publicAddress: publicAddress, token: newToken, createdAt: unixTime }, { new: true, upsert: true });
             return newToken;
         });
     }

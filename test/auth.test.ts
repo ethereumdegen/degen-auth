@@ -113,12 +113,13 @@ describe('Authentication', () => {
 
     let publicAddress = user.address
      
-    let newToken = await DegenAuth.upsertNewAuthenticationTokenForAccount(mongoInterface, publicAddress  )
+    let upsert = await DegenAuth.upsertNewAuthenticationTokenForAccount(mongoInterface, publicAddress  )
 
 
     //let activeChallenge = await DegenAuth.findActiveChallengeForAccount(mongoInterface, publicAddress)
 
-    expect(newToken).to.exist
+    expect(upsert).to.exist
+    expect(upsert.token).to.exist
 
     let record = await mongoInterface.getModel(AuthenticationTokenDefinition).findOne(
       { publicAddress: publicAddress })
@@ -126,7 +127,7 @@ describe('Authentication', () => {
     console.log('record',record)
     expect(record.token).to.exist
 
-    let matchingToken = await DegenAuth.validateAuthenticationTokenForAccount(mongoInterface,publicAddress, newToken)
+    let matchingToken = await DegenAuth.validateAuthenticationTokenForAccount(mongoInterface,publicAddress, upsert.token)
 
 
     expect(matchingToken).to.exist

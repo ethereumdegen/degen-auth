@@ -106,7 +106,7 @@ export default class DegenAuth {
         )
       
   
-      return newToken
+      return upsert
     }
 
 

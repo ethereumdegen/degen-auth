@@ -4,20 +4,20 @@ exports.DegenAuthExtension = exports.AuthenticationTokenDefinition = exports.Cha
 const extensible_mongoose_1 = require("extensible-mongoose");
 const mongoose_1 = require("mongoose");
 exports.ChallengeTokenSchema = new mongoose_1.Schema({
-    challenge: { type: String },
-    publicAddress: { type: String, index: true, unique: true },
+    challenge: { type: String, required: true },
+    publicAddress: { type: String, index: true, unique: true, required: true },
     createdAt: Number,
 });
 exports.AuthenticationTokenSchema = new mongoose_1.Schema({
-    token: { type: String },
-    publicAddress: { type: String, index: true, unique: true },
+    token: { type: String, required: true },
+    publicAddress: { type: String, index: true, unique: true, required: true },
     createdAt: Number,
 });
 exports.ChallengeTokenDefinition = {
     tableName: 'challengetokens', schema: exports.ChallengeTokenSchema
 };
 exports.AuthenticationTokenDefinition = {
-    tableName: 'authenticationtokens', schema: exports.ChallengeTokenSchema
+    tableName: 'authenticationtokens', schema: exports.AuthenticationTokenSchema
 };
 class DegenAuthExtension extends extensible_mongoose_1.DatabaseExtension {
     constructor(mongoDatabase) {
