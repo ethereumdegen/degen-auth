@@ -74,7 +74,7 @@ export default class DegenAuth {
       return existingChallengeToken
     }
 
-    static generateNewAuthenticationToken() {
+    static generateNewAuthenticationToken() : string {
       return crypto.randomBytes(16).toString('hex')
     }
 
@@ -95,12 +95,13 @@ export default class DegenAuth {
       const unixTime = Date.now().toString()
   
       const newToken = DegenAuth.generateNewAuthenticationToken()
-  
+      
+       
       publicAddress = web3utils.toChecksumAddress(publicAddress)
   
-       let upsert = await mongoDB.getModel(AuthenticationTokenDefinition).findOneAndUpdate(
+      let upsert = await mongoDB.getModel(AuthenticationTokenDefinition).findOneAndUpdate(
           { publicAddress: publicAddress },
-          { token: newToken, createdAt: unixTime },
+          { publicAddress: publicAddress , token: newToken, createdAt: unixTime },
           {new:true, upsert:true }
         )
       

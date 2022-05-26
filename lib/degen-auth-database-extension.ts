@@ -27,14 +27,14 @@ export interface AuthenticationToken {
  
 
 export const  ChallengeTokenSchema = new Schema<ChallengeToken>({
-  challenge: { type: String },
-  publicAddress: { type: String, index: true, unique: true },
+  challenge: { type: String, required:true  },
+  publicAddress: { type: String, index: true, unique: true, required:true },
   createdAt: Number,
 })
 
 export const  AuthenticationTokenSchema = new Schema<AuthenticationToken>({
-  token: { type: String },
-  publicAddress: { type: String, index: true, unique: true },
+  token: { type: String, required: true },
+  publicAddress: { type: String, index: true, unique: true, required:true },
   createdAt: Number,
 })
 
@@ -44,7 +44,7 @@ export const ChallengeTokenDefinition:TableDefinition={
 
 
 export const AuthenticationTokenDefinition:TableDefinition={
-  tableName:'authenticationtokens',schema:ChallengeTokenSchema
+  tableName:'authenticationtokens',schema:AuthenticationTokenSchema
 }
 
 export class DegenAuthExtension extends DatabaseExtension {

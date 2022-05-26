@@ -2,7 +2,7 @@ import { expect, should } from 'chai'
 import fs from 'fs'
 import path from 'path'
  
-import DegenAuth, {DegenAuthExtension} from '../index' 
+import DegenAuth, {AuthenticationTokenDefinition, DegenAuthExtension} from '../index' 
 
 import   { Contract, Signer, Wallet } from 'ethers'
 import ExtensibleMongooseDatabase from 'extensible-mongoose'
@@ -108,6 +108,30 @@ describe('Authentication', () => {
 
  
 
+    
+  it('can save an auth token ', async () => {
+
+    let publicAddress = user.address
+     
+    let newToken = await DegenAuth.upsertNewAuthenticationTokenForAccount(mongoInterface, publicAddress  )
+
+
+    //let activeChallenge = await DegenAuth.findActiveChallengeForAccount(mongoInterface, publicAddress)
+
+    expect(newToken).to.exist
+
+    let record = await mongoInterface.getModel(AuthenticationTokenDefinition).findOne(
+      { publicAddress: publicAddress })
+
+    console.log('record',record)
+    expect(record.token).to.exist
+
+    let matchingToken = await DegenAuth.validateAuthenticationTokenForAccount(mongoInterface,publicAddress, newToken)
+
+
+    expect(matchingToken).to.exist
+    console.log('matchingToken',matchingToken)
+  })
 
  
 
