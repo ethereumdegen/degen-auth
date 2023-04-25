@@ -4,6 +4,10 @@ Authentication library for web3 enabled applications
 
 
 
+update: see https://github.com/ethereumdegen/degen-auth-react 
+
+
+
 #### How to Use 
 
 1) When a user requests to sign in via web3 with a particular publicAddress, a request is made to your backend which then will call AuthTools.upsertNewChallengeForAccount(publicAddress,serviceName)  where serviceName is the name of your Dapp service.
